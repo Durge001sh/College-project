@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Panel - Q&A </title>
+    <style>
+        /* === भाग 1: थीम और बैकग्राउंड === */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            /* हल्का नीला और सफेद कॉम्बिनेशन */
+            background-color: #f0f8ff; /* हल्का नीला */
+            color: #333;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+       
+        /* === भाग 1: हेडिंग === */
+        h1.main-title { 
+            /* H1: कॉलेज का नाम */
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #004a99;
+            margin-top: 20px;
+        }
+        h2.sub-title {
+            /* H2:    प्रश्न-उत्तर */
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #0066cc;
+            margin-bottom: 30px;
+        }
+
+        /* === भाग 1: कैटेगरी सेक्शन (अकॉर्डियन) === */
+        .category-accordion {
+            background-color: #fff;
+            color: #444;
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            margin-top: 10px; /* कैटेगरी के बीच गैप */
+        }
+        .category-accordion:hover, .category-accordion.active {
+            background-color: #e6f2ff;
+        }
+        .category-panel {
+            padding: 0 18px;
+            background-color: white;
+            max-height: 0;
+            overflow: hidden;
+            /* 3. एनिमेशन: स्मूथ स्लाइड डाउन */
+            transition: max-height 0.3s ease-out;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            /* पैनल और पहले प्रश्न के बीच गैप */
+            padding-bottom: 1px; 
+        }
+
+        /* === भाग 1: प्रश्न बॉक्स === */
+        .question-box {
+            background-color: #ffffff;
+            margin: 15px 0;
+            padding: 20px;
+            /* 4. आकार: राउंडेड रेक्टेंगल */
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 74, 153, 0.08);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            
+            /* 4. स्क्रॉल एनिमेशन (शुरुआती स्थिति) */
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        /* 4. स्क्रॉल एनिमेशन (जब दिखे) */
+        .question-box.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 4. होवर एनिमेशन: सटल ग्रो */
+        .question-box:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 15px rgba(0, 74, 153, 0.15);
+        }
+        .question-box h3 {
+            margin: 0;
+            color: #0056b3;
+            font-size: 1.2rem;
+        }
+
+        /* === भाग 2: प्रश्न-उत्तर पेज === */
+        #page-user-answer {
+            background-color: #ffffff; /* 2. सिंपल और क्लासिक */
+            min-height: 100vh;
+        }
+        .answer-content {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        /* 2. बैक बटन */
+        .btn-back {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #007bff;
+            text-decoration: none;
+            padding: 10px;
+            display: inline-block;
+        }
+        #answer-question {
+            font-size: 1.8rem;
+            color: #1c1e21;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+        #answer-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #333;
+            white-space: pre-wrap; /* यह टेक्स्ट फॉर्मेटिंग (जैसे नई लाइन) को बनाए रखता है */
+        }
+        
+        /* === भाग 3: कॉपी बटन और ऐड === */
+        .copy-button-wrapper {
+            text-align: center;
+            padding: 30px 20px;
+            border-top: 2px solid #f0f0f0;
+            margin-top: 40px;
+        }
+        /* 1. कॉपी बटन का डिजाइन */
+        .btn-copy-answer {
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border: none;
+            border-radius: 50px; /* आकर्षक लुक */
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+            transition: all 0.3s ease;
+            /* 'पल्स' एनिमेशन */
+            animation: pulse-animation 2s infinite;
+        }
+        .btn-copy-answer:hover {
+            transform: scale(1.05);
+            animation-play-state: paused;
+        }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4); }
+            50% { box-shadow: 0 5px 25px rgba(0, 123, 255, 0.7); }
+            100% { box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4); }
+        }
+
+        /* 2. पॉप-अप (ऐड के लिए) */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .popup-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .popup-content h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .btn-copy-now {
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            background-color: #28a745;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* 3. सक्सेस मैसेज (टोस्ट) */
+        #toast-success {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        #toast-success.show {
+            opacity: 1;
+        }
+
+    </style>
+</head>
+<body>
+
+    <section id="page-user-home" class="container">
+        
+        <h1 class="main-title">XYZ College</h1>
+        <h2 class="sub-title">महत्वपूर्ण प्रश्न-उत्तर</h2>
+
+        <div id="category-container">
+            </div>
+
+        </section>
+
+    <section id="page-user-answer" style="display:none;">
+        <div class="answer-content">
+            
+            <a href="#" id="btn-answer-back" class="btn-back">← वापस होम पर</a>
+
+            <h1 id="answer-question">प्रश्न यहाँ लोड होगा...</h1>
+            <p id="answer-text">उत्तर यहाँ लोड होगा...</p>
+
+            <div class="copy-button-wrapper">
+                <button id="btn-copy-answer" class="btn-copy-answer">कॉपी आंसर</button>
+            </div>
+        </div>
+    </section>
+
+    <div id="popup-ad" class="popup-overlay" style="display:none;">
+        <div class="popup-content">
+            <h3>कृपया ऐड देखें और कॉपी करें</h3>
+            <p>(यहाँ एक विज्ञापन दिखाया जाएगा)</p>
+            <button id="btn-copy-now" class="btn-copy-now">कॉपी नाउ</button>
+        </div>
+    </div>
+
+    <div id="toast-success">
+        कॉपी सक्सेसफुल!
+    </div>
+
+
+    <script>
+        // --- ग्लोबल वेरिएबल ---
+        let db = [];
+        let currentCategories = [];
+        let textToCopy = ""; // कॉपी करने के लिए टेक्स्ट
+
+        // --- DOM एलिमेंट्स ---
+        const pageHome = document.getElementById('page-user-home');
+        const pageAnswer = document.getElementById('page-user-answer');
+        const categoryContainer = document.getElementById('category-container');
+        // const questionContainer = document.getElementById('question-container'); // अब यह डायनामिक है
+        const btnBack = document.getElementById('btn-answer-back');
+        const btnCopyAnswer = document.getElementById('btn-copy-answer');
+        const popupAd = document.getElementById('popup-ad');
+        const btnCopyNow = document.getElementById('btn-copy-now');
+        const toastSuccess = document.getElementById('toast-success');
+        
+        // --- पेज बदलने का फंक्शन ---
+        function showPage(pageId) {
+            pageHome.style.display = 'none';
+            pageAnswer.style.display = 'none';
+            document.getElementById(pageId).style.display = 'block';
+        }
+
+        // --- 1. स्टोरेज से डेटा लोड करना ---
+        function loadFromStorage() {
+            // एडमिन पैनल द्वारा सेव किया गया डेटा पढ़ें
+            const data = localStorage.getItem('qa_data');
+            const allData = data ? JSON.parse(data) : [];
+            
+            // सिर्फ उन्हीं प्रश्नों को दिखाएं जो 'hidden' नहीं हैं
+            db = allData.filter(item => !item.isHidden);
+            
+            // एडमिन पैनल द्वारा सेव की गई कैटेगरी पढ़ें
+            const catData = localStorage.getItem('qa_categories');
+            const savedCategories = catData ? JSON.parse(catData) : ['मेजर', 'माइनर']; // डिफ़ॉल्ट
+            
+            // सिर्फ वही कैटेगरी दिखाएं जिनमें प्रश्न हैं
+            const categoriesInUse = new Set(db.map(item => item.category));
+            currentCategories = ['सभी', ...savedCategories.filter(cat => categoriesInUse.has(cat))];
+        }
+
+        // --- 2. होम पेज रेंडर करना ---
+        function renderHomePage() {
+            renderCategories();
+            initScrollAnimation(); // स्क्रॉल एनिमेशन शुरू करें
+        }
+
+        // कैटेगरी अकॉर्डियन बनाना
+        function renderCategories() {
+            categoryContainer.innerHTML = '';
+            currentCategories.forEach((category, index) => {
+                const accButton = document.createElement('button');
+                accButton.className = 'category-accordion';
+                accButton.textContent = category;
+                
+                const panel = document.createElement('div');
+                panel.className = 'category-panel';
+                // इस पैनल के अंदर हम इस कैटेगरी के प्रश्न डालेंगे
+                const panelContent = document.createElement('div');
+                panelContent.id = `panel-for-${category.replace(/\s+/g, '-')}`; // यूनिक ID
+                panel.appendChild(panelContent);
+
+                categoryContainer.appendChild(accButton);
+                categoryContainer.appendChild(panel);
+
+                // अकॉर्डियन का क्लिक
+                accButton.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const currentPanel = this.nextElementSibling;
+                    
+                    if (currentPanel.style.maxHeight) {
+                        currentPanel.style.maxHeight = null;
+                    } else {
+                        // प्रश्न रेंडर करें (सिर्फ पहली बार)
+                        if (panelContent.innerHTML === "") {
+                           renderQuestions(category, panelContent.id);
+                        }
+                        // और खोलें
+                        // थोड़ा डिले ताकि JS पहले कंटेंट भर सके
+                        setTimeout(() => {
+                           currentPanel.style.maxHeight = currentPanel.scrollHeight + "px";
+                        }, 50);
+                    }
+                });
+            });
+            // शुरू में "सभी" को खोलें
+            document.querySelector('.category-accordion').click();
+        }
+
+        // प्रश्न बॉक्स रेंडर करना
+        function renderQuestions(category, containerId) {
+            let container = document.getElementById(containerId);
+            container.innerHTML = ''; // पुराना डेटा साफ़ करें
+            
+            const filteredDB = (category === 'सभी') ? db : db.filter(item => item.category === category);
+            
+            if (filteredDB.length === 0) {
+                container.innerHTML = '<p style="padding: 15px;">इस कैटेगरी में कोई प्रश्न नहीं है।</p>';
+                return;
+            }
+            
+            filteredDB.forEach(item => {
+                const qBox = document.createElement('div');
+                qBox.className = 'question-box';
+                qBox.innerHTML = `<h3>${item.heading}</h3><p>${item.question.substring(0, 100)}...</p>`;
+                qBox.dataset.id = item.id; // ID सेव करें
+                
+                // प्रश्न पर क्लिक लिस्नर
+                qBox.addEventListener('click', () => {
+                    showAnswerPage(item.id);
+                });
+                
+                container.appendChild(qBox);
+            });
+            // स्क्रॉल एनिमेशन के लिए नए बॉक्स को ऑब्जर्व करें
+            initScrollAnimation();
+        }
+
+        // --- 3. प्रश्न-उत्तर पेज दिखाना ---
+        function showAnswerPage(id) {
+            const item = db.find(i => i.id == id);
+            if (!item) return;
+            
+            document.getElementById('answer-question').textContent = item.question;
+            document.getElementById('answer-text').textContent = item.answer;
+            
+            textToCopy = item.answer; // कॉपी करने के लिए टेक्स्ट सेव करें
+            
+            showPage('page-user-answer');
+            window.scrollTo(0, 0); // पेज के टॉप पर जाएँ
+        }
+
+        // --- 4. स्क्रॉल एनिमेशन ---
+        function initScrollAnimation() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 }); // 10% दिखने पर
+
+            document.querySelectorAll('.question-box:not(.visible)').forEach(box => {
+                observer.observe(box);
+            });
+        }
+
+        // --- 5. सभी बटन लिस्नर ---
+        function attachListeners() {
+            // (पेज 2) बैक बटन
+            btnBack.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('page-user-home');
+            });
+            
+            // (भाग 3.1) "कॉपी आंसर" बटन (पहला क्लिक)
+            btnCopyAnswer.addEventListener('click', () => {
+                popupAd.style.display = 'flex';
+            });
+            
+            // (भाग 3.2) "कॉपी नाउ" बटन (दूसरा और तीसरा क्लिक)
+            btnCopyNow.addEventListener('click', () => {
+                // *** 100% FIX: 'writeText' एरर के लिए ***
+                copyToClipboard(textToCopy);
+            });
+        }
+
+        // --- 6. कॉपी करने का 100% फिक्स फंक्शन ---
+
+        // यह फंक्शन कॉपी सक्सेस होने पर मैसेज दिखाता है
+        function showCopySuccess() {
+            // एक्शन 2: ऐड (यहाँ सिम्युलेटेड है)
+            console.log("ऐड यहाँ दिखाया जाएगा");
+            
+            // एक्शन 3: सक्सेस मैसेज
+            popupAd.style.display = 'none'; // पॉप-अप बंद करें
+            toastSuccess.classList.add('show');
+            
+            // एक्शन 4: मैसेज छिपाएँ
+            setTimeout(() => {
+                toastSuccess.classList.remove('show');
+            }, 2500); // 2.5 सेकंड बाद
+        }
+
+        // यह फंक्शन 'execCommand' (पुराना तरीका) इस्तेमाल करता है
+        function fallbackCopyText(text) {
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                
+                // इसे अदृश्य (invisible) बनाएँ
+                textArea.style.position = "fixed";
+                textArea.style.top = 0;
+                textArea.style.left = 0;
+                textArea.style.opacity = 0;
+
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+
+                document.execCommand('copy'); // यह मुख्य कमांड है
+
+                document.body.removeChild(textArea);
+                showCopySuccess(); // सफलता का मैसेज दिखाएँ
+            } catch (err) {
+                console.error('Fallback copy (पुराना तरीका) भी फेल हो गया:', err);
+                alert('कॉपी नहीं हो सका!'); // अगर यह भी फेल हो
+            }
+        }
+
+        // यह मुख्य कॉपी फंक्शन है
+        function copyToClipboard(text) {
+            // 1. पहले नया तरीका (navigator.clipboard) ट्राई करें
+            // यह सिर्फ https:// या localhost पर काम करता है
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopySuccess(); // सफलता
+                }).catch(err => {
+                    console.warn('नया तरीका फेल हुआ, पुराना ट्राई कर रहे हैं:', err);
+                    fallbackCopyText(text); // फेल होने पर पुराना तरीका
+                });
+            } else {
+                // 2. अगर ब्राउज़र असुरक्षित (http:// या file://) है, तो सीधे पुराना तरीका चलाएँ
+                console.warn("सिक्योर कॉन्टेक्स्ट नहीं है, पुराना तरीका (fallback) इस्तेमाल किया जा रहा है।");
+                fallbackCopyText(text);
+            }
+        }
+
+        // --- ऐप शुरू करें ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+            renderHomePage();
+            attachListeners();
+        });
+
+    </script>
+</body>
+</html>
